@@ -4,6 +4,10 @@ const mongoose = require('mongoose');
 const bcrypt = require('bcrypt');
 const jwt = require('jsonwebtoken');
 
+// ----------------------------------------------------------------------------------------------
+// SCHEMA AND VIRTUALS
+// ----------------------------------------------------------------------------------------------
+
 const users = new mongoose.Schema({
   username: {type:String, required:true, unique:true},
   password: {type:String, required:true},
@@ -11,7 +15,17 @@ const users = new mongoose.Schema({
   role: {type: String, default:'user', enum: ['admin','editor','user']},
 });
 
+const capabilities = {
+  admin: ['read', 'update', 'create', 'delete', 'super'],
+  editor: ['read', 'update', 'create'],
+  user: ['read'],
+}
+
+
+// ----------------------------------------------------------------------------------------------
+
 const usedTokens = [];
+
 
 users.pre('save', function(next) {
   bcrypt.hash(this.password, 10)
@@ -24,11 +38,11 @@ users.pre('save', function(next) {
 
 users.statics.createFromOauth = function(email) {
 
-  if(! email) { return Promise.reject('Validation Error'); }
+  if(!email) { return Promise.reject('Validation Error'); }
 
   return this.findOne( {email} )
     .then(user => {
-      if( !user ) { throw new Error('User Not Found'); }
+      if(!user) { throw new Error('User Not Found'); }
       console.log('Welcome Back', user.username);
       return user;
     })
@@ -66,9 +80,10 @@ users.methods.comparePassword = function(password) {
 };
 
 users.methods.generateToken = function(type) {
+  console.log(this);
   let token = {
     id: this._id,
-    role: this.role,
+    capabilities: capabilities[this.role],
     type: type || 'user',
   };
 
@@ -84,4 +99,8 @@ users.methods.generateKey = function() {
   return this.generateToken('key');
 }
 
+users.methods.checkCapability = function(capability) {
+  // const thisUsersCapabilities = capabilities[this.role];
+  return capabilities[this.role].includes(capability);
+}
 module.exports = mongoose.model('users', users);

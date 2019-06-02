@@ -1,5 +1,5 @@
-## Lab 13 - Bearer Authorization
-Implements Bearer authorization tokens and routes that use them.
+## Lab 14 - Access Control
+Implements Access control through user roles and capabilities
 ### Author: Chris Kozlowski
 
 ### Links and Resources
@@ -8,15 +8,15 @@ Implements Bearer authorization tokens and routes that use them.
 * [Heroku Deployment](https://lab13-bearer-auth.herokuapp.com/)
 
 ### Modules
-#### `auth/router.js`
-Added `/key` route for obtaining a key token that does not expire
+#### `routes/routes.js`
+Added routes for testing many RESTful verbs and specific user capabilities.
 #### `auth/middleware.js`
-Updated to also accept bearer authorization header.
+Added capability check to `_authenticate` method.
 #### `auth/users-model.js`
-Contains methods for verifying token integrity, supplying or consuming timed tokens, and supplying unexpiring token keys.
+Now holds capabilities for the different roles, and assigns them as users are created, based on their role.  Also checks that a user has a capability before allowing access to a resource.
 
 #### Operation
-Users that sign up on the `/signup` route will receive a response with a single-use token attached.  The user's token will expire after 15 minutes.  With this token in the Authorization header, the user can now access the `/key` route, which will provide an unexpiring key token.  After using the original token to reach any route, that token can no longer be used.  
+When a user signs up, they can assign themselves a role from the choices of `user`, `editor`, and `admin`.  If no role is selected, it will default to `user`.  There are several new routes that each require a different capability to access.  If a user with insufficient capabilities attempts to access them, they will receive a 403 Forbidden error, otherwise they will reach the endpoint.
 
 #### Testing
 `npm test`
